@@ -1,0 +1,26 @@
+{
+	"name": "@kirick/redis-limiter",
+	"version": "0.1.0-beta.2",
+	"description": "Rate limiter based on Redis.",
+	"publishConfig": {
+		"access": "public",
+		"tag": "beta"
+	},
+	"main": "main.js",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kirick13/redis-limiter.git"
+	},
+	"keywords": [
+		"limiter",
+		"ratelimiter",
+		"limit",
+		"redis"
+	],
+	"author": "Daniil Kirichenko (https://twitter.com/kirickme)",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/kirick13/redis-limiter/issues"
+	},
+	"homepage": "https://github.com/kirick13/redis-limiter#readme"
+}
