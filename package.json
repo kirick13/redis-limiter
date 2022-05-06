@@ -1,6 +1,6 @@
 {
 	"name": "@kirick/redis-limiter",
-	"version": "0.1.0-beta.2",
+	"version": "0.1.0-beta.3",
 	"description": "Rate limiter based on Redis.",
 	"publishConfig": {
 		"access": "public",
