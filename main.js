@@ -44,7 +44,7 @@ class RedisLimiter {
                             element
                         )
                         if 0 == added then
-                            return
+                            return {}
                         end
                         value_new = redis.call(
                             "SCARD",
@@ -97,14 +97,14 @@ class RedisLimiter {
 
         this._limit_names = [];
         this._redis_limit_args = [];
-        this._error_getters = new Map();
+        this._error_listeners = new Map();
         for (const [
             limit_name,
             {
                 limit,
                 ttl,
                 ttl_block,
-                getError,
+                onError,
             },
         ] of Object.entries(limits)) {
             this._limit_names.push(limit_name);
@@ -116,9 +116,9 @@ class RedisLimiter {
                 ttl_block ?? 0,
             );
 
-            this._error_getters.set(
+            this._error_listeners.set(
                 limit_name,
-                getError,
+                onError,
             );
         }
     }
@@ -142,7 +142,12 @@ class RedisLimiter {
                 const limit_name = this._limit_names[ix / 2];
                 const ttl = result[ix + 1];
 
-                throw this._error_getters.get(limit_name)(ttl);
+                this._error_listeners.get(limit_name).call(this, ttl);
+
+                const error = new Error('Limit exceeded');
+                error.code = 'LIMIT_EXCEEDED';
+                error.package = '@kirick/redis-limiter';
+                throw error;
             }
         }
     }
@@ -156,21 +161,28 @@ class RedisLimiter {
         );
 
         if (typeof limit_name === 'string') {
-            throw this._error_getters.get(limit_name)(ttl);
+            this._error_listeners.get(limit_name).call(this, ttl);
+
+            const error = new Error('Limit exceeded');
+            error.code = 'LIMIT_EXCEEDED';
+            error.package = '@kirick/redis-limiter';
+            throw error;
         }
     }
 
     async reset (key, limit_names) {
         const keys_to_delete = new Set();
 
-        for (const limit_name of (limit_names ?? this._error_getters)) {
+        for (const limit_name of (limit_names ?? this._error_listeners)) {
             keys_to_delete.add(
                 REDIS_PREFIX + this._name + ':' + key + ':' + limit_name,
             );
         }
 
         if (keys_to_delete.size > 0) {
-            await this._redisClient.DEL(...keys_to_delete);
+            await this._redisClient.DEL(
+                ...keys_to_delete,
+            );
         }
     }
 }
